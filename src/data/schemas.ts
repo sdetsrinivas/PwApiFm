@@ -11,4 +11,20 @@ export class schemas {
       required: ["id", "userName", "password"],
     },
   };
+
+  static singleUserSchema = {
+    type: "object",
+    properties: {
+      id: {
+        type: "number",
+      },
+      userName: {
+        type: "string",
+      },
+      password: {
+        type: "string",
+      },
+    },
+    required: ["id", "userName", "password"],
+  };
 }
