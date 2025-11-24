@@ -1,9 +1,7 @@
 import { schemas } from "../src/data/schemas";
 import { test, expect } from "../src/fixtures/api-fixtures";
 import * as schemaVl from "../src/helpers/schemaValidator";
-import { User } from "../src/modules/user";
-
-let newUser = new User();
+import { UserFactory } from "../src/modules/user";
 
 test("verify the get all user functioanlity using get request", async ({
   userService,
@@ -77,6 +75,7 @@ test("verify the post request creates a new user", async ({ userService }) => {
 test("verify the post request creates a new user using random data", async ({
   userService,
 }) => {
+  const newUser = UserFactory.createRandomUser();
   const response = await userService.createUser(newUser);
   console.log("Resolved request URL (userService):", response.url());
   expect(response.status()).toBe(200);
