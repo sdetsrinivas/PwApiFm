@@ -1,11 +1,60 @@
 import Ajv from "ajv";
 import { ZodType } from "zod";
-const ajv = new Ajv();
+
+// enable collecting all errors and verbose params so we can build a complete report
+const ajv = new Ajv({ allErrors: true, verbose: true });
 
 export function validateSchema(schema: any, data: any) {
-  const validate = ajv.compile(schema);
+  const validate: any = ajv.compile(schema);
   const valid = validate(data);
-  return { valid, errors: validate.errors };
+
+  const rawErrors: any[] = Array.isArray(validate.errors)
+    ? validate.errors
+    : [];
+
+  type ValidationError = {
+    path: string[];
+    message: string;
+    expected: unknown | null;
+    received: unknown | null;
+  };
+
+  const errors: ValidationError[] = rawErrors.map((e: any) => {
+    // AJV uses `instancePath` (json-pointer) in newer versions, `dataPath` in older ones
+    const pointer: string = e.instancePath ?? e.dataPath ?? "";
+    const path = pointer
+      ? pointer.split("/").filter((s: string) => s.length > 0)
+      : [];
+
+    // try to infer an "expected" value when AJV provides it via params
+    let expected: unknown | null = null;
+    if (e.params) {
+      if (e.params.allowedValues !== undefined)
+        expected = e.params.allowedValues;
+      else if (e.params.type !== undefined) expected = e.params.type;
+      else if (e.params.format !== undefined) expected = e.params.format;
+    }
+
+    // Get the received value from the data
+    let received: unknown | null = null;
+    if (path.length > 0) {
+      received = data;
+      for (const key of path) {
+        received = (received as any)?.[key];
+      }
+    } else {
+      received = data;
+    }
+
+    return {
+      path: path.map(String),
+      message: String(e.message ?? ""),
+      expected: expected === undefined ? null : expected,
+      received: received === undefined ? null : received,
+    };
+  });
+
+  return { valid, errors };
 }
 
 export function validateSchemaUsingZod<T = unknown>(
@@ -39,24 +88,35 @@ export function validateSchemaUsingZod<T = unknown>(
   type ValidationError = {
     path: string[];
     message: string;
-    code: string;
     expected: unknown | null;
     received: unknown | null;
-    meta: any | null;
   };
 
   const errors: ValidationError[] = rawIssues.map(
-    (iss: any): ValidationError => ({
-      // `path` is typically an array of keys/indices
-      path: Array.isArray(iss.path) ? iss.path.map(String) : [String(iss.path)],
-      message: String(iss.message ?? ""),
-      code: String(iss.code ?? ""),
-      // some Zod versions include "expected"/"received" or "received" fields for type errors
-      expected: iss.expected === undefined ? null : iss.expected,
-      received: iss.received === undefined ? null : iss.received,
-      // include any other useful raw props (safe to include; still plain JSON)
-      meta: iss.meta ?? null,
-    })
+    (iss: any): ValidationError => {
+      const path = Array.isArray(iss.path)
+        ? iss.path.map(String)
+        : [String(iss.path)];
+
+      // Get the received value from the data using the error path
+      let received: unknown | null = null;
+      if (path.length > 0) {
+        received = data;
+        for (const key of path) {
+          received = (received as any)?.[key];
+        }
+      } else {
+        received = data;
+      }
+
+      return {
+        path: path,
+        message: String(iss.message ?? ""),
+        // some Zod versions include "expected"/"received" or "received" fields for type errors
+        expected: iss.expected === undefined ? null : iss.expected,
+        received: received === undefined ? null : received,
+      };
+    }
   );
 
   const message =
@@ -86,21 +146,11 @@ export function validateSchemaUsingZod<T = unknown>(
 export function assertSchema<T = unknown>(
   schema: ZodType<T>,
   data: unknown
-): T {
+): { valid: boolean; errors: any[] } {
   const res = validateSchemaUsingZod<T>(schema, data);
-  if (res.valid && res.parsedData !== null) return res.parsedData as T;
 
-  // Throw an error with the pre-built message and JSON details for logs/reporters
-  const details = {
-    message: res.message,
-    errors: res.errors,
+  return {
+    valid: res.valid,
+    errors: res.errors || [],
   };
-
-  throw new Error(
-    `Schema validation failed:\n${res.message}\n\nDetails: ${JSON.stringify(
-      details,
-      null,
-      2
-    )}`
-  );
 }

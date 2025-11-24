@@ -29,7 +29,7 @@ test("verify the get particular user fetches the respective user", async ({
     schemas.singleUserSchema,
     responseBody
   );
-  console.log(compareSchema);
+  console.log(JSON.stringify(compareSchema, null, 2));
   expect(compareSchema.valid).toBe(true);
 });
 
@@ -48,7 +48,7 @@ for (const id of userIds) {
       schemas.singleUserSchema,
       responseBody
     );
-    console.log(compareSchema);
+    console.log(JSON.stringify(compareSchema, null, 2));
     expect(compareSchema.valid).toBe(true);
   });
 }
@@ -67,7 +67,7 @@ test("verify the post request creates a new user", async ({ userService }) => {
     schemas.singleUserSchema,
     responseBody
   );
-  console.log(compareSchema);
+  console.log(JSON.stringify(compareSchema, null, 2));
   expect(compareSchema.valid).toBe(true);
 });
 
@@ -87,5 +87,6 @@ test("verify the post request creates a new user and valdiate the schema using z
     schemas.zodSingleUserSchema,
     responseBody
   );
-  console.log(compareSchema);
+  console.log(JSON.stringify(compareSchema, null, 2));
+  expect(compareSchema.valid).toBe(true);
 });
