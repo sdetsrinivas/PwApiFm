@@ -9,7 +9,6 @@ type ApiFixtures = {
 export const test = base.extend<ApiFixtures>({
   apiRequest: async ({}, use) => {
     const apiRequest = await playwrightRequest.newContext({
-      baseURL: "https://fakerestapi.azurewebsites.net",
       extraHTTPHeaders: {
         "Content-Type": "application/json",
       },
