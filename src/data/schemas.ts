@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export class schemas {
   static allUserSchema = {
     type: "array",
@@ -27,4 +29,10 @@ export class schemas {
     },
     required: ["id", "userName", "password"],
   };
+
+  static zodSingleUserSchema = z.object({
+    id: z.number(),
+    userName: z.string(),
+    password: z.string(),
+  });
 }

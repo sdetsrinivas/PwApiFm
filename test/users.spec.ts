@@ -6,7 +6,6 @@ test("verify the get all user functioanlity using get request", async ({
   userService,
 }) => {
   const response = await userService.getAllUser();
-  // Print the resolved request URL from the API response
   console.log("Resolved request URL (userService):", response.url());
   expect(response.status()).toBe(200);
   const responseBody = await response.json();
@@ -22,7 +21,6 @@ test("verify the get particular user fetches the respective user", async ({
   userService,
 }) => {
   const response = await userService.getUser("1");
-  // Print the resolved request URL from the API response
   console.log("Resolved request URL (userService):", response.url());
   expect(response.status()).toBe(200);
   const responseBody = await response.json();
@@ -42,7 +40,6 @@ for (const id of userIds) {
     userService,
   }) => {
     const response = await userService.getUser(id);
-    // Print the resolved request URL from the API response
     console.log("Resolved request URL (userService):", response.url());
     expect(response.status()).toBe(200);
     const responseBody = await response.json();
@@ -56,13 +53,12 @@ for (const id of userIds) {
   });
 }
 
-test("verify the post reuest creates a new user", async ({ userService }) => {
+test("verify the post request creates a new user", async ({ userService }) => {
   const response = await userService.createUser({
     id: 20,
     userName: "new user",
     password: "password",
   });
-  // Print the resolved request URL from the API response
   console.log("Resolved request URL (userService):", response.url());
   expect(response.status()).toBe(200);
   const responseBody = await response.json();
@@ -73,4 +69,23 @@ test("verify the post reuest creates a new user", async ({ userService }) => {
   );
   console.log(compareSchema);
   expect(compareSchema.valid).toBe(true);
+});
+
+test("verify the post request creates a new user and valdiate the schema using zod", async ({
+  userService,
+}) => {
+  const response = await userService.createUser({
+    id: 21,
+    userName: "new user",
+    password: "password",
+  });
+  console.log("Resolved request URL (userService):", response.url());
+  expect(response.status()).toBe(200);
+  const responseBody = await response.json();
+  console.log(responseBody);
+  const compareSchema = schemaVl.assertSchema(
+    schemas.zodSingleUserSchema,
+    responseBody
+  );
+  console.log(compareSchema);
 });
