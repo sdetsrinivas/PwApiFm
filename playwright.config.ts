@@ -4,9 +4,15 @@ import { defineConfig, devices } from "@playwright/test";
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+import dotenv from "dotenv";
+
+if (process.env.TEST_ENV) {
+  dotenv.config({ path: `./Env/.env.${process.env.TEST_ENV}` });
+  console.log(`Using environment config file: .env.${process.env.TEST_ENV}`);
+} else {
+  console.log("Using default environment config file");
+  dotenv.config({ path: `./env/.env.default` });
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -26,7 +32,8 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: "https://fakerestapi.azurewebsites.net/",
+    baseURL:
+      process.env.API_BASE_URL || "https://fakerestapi.azurewebsites.net/",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
