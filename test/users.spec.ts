@@ -1,6 +1,9 @@
 import { schemas } from "../src/data/schemas";
 import { test, expect } from "../src/fixtures/api-fixtures";
 import * as schemaVl from "../src/helpers/schemaValidator";
+import { User } from "../src/modules/user";
+
+let newUser = new User();
 
 test("verify the get all user functioanlity using get request", async ({
   userService,
@@ -67,6 +70,25 @@ test("verify the post request creates a new user", async ({ userService }) => {
     schemas.singleUserSchema,
     responseBody
   );
+  console.log(JSON.stringify(compareSchema, null, 2));
+  expect(compareSchema.valid).toBe(true);
+});
+
+test("verify the post request creates a new user using random data", async ({
+  userService,
+}) => {
+  const response = await userService.createUser(newUser);
+  console.log("Resolved request URL (userService):", response.url());
+  expect(response.status()).toBe(200);
+  const responseBody = await response.json();
+  console.log(responseBody);
+  const compareSchema = schemaVl.validateSchema(
+    schemas.singleUserSchema,
+    responseBody
+  );
+  expect(responseBody.userName).toBe(newUser.userName);
+  expect(responseBody.id).toBe(newUser.id);
+  expect(responseBody.password).toBe(newUser.password);
   console.log(JSON.stringify(compareSchema, null, 2));
   expect(compareSchema.valid).toBe(true);
 });
