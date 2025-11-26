@@ -10,4 +10,10 @@ export class UsersService extends BaseClient {
   async getAllUser() {
     return this.get(`/Users`);
   }
+  async updateUser(id: string, payload: any) {
+    return this.put(`/Users/${id}`, payload);
+  }
+  async deleteUser(id: string) {
+    return this.delete(`/Users/${id}`);
+  }
 }

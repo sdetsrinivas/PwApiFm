@@ -92,6 +92,30 @@ test("verify the post request creates a new user using random data", async ({
   expect(compareSchema.valid).toBe(true);
 });
 
+//Data driven test for creating multiple users
+const newUsers = UserFactory.createRandomUsers(5);
+for (const [index, newUser] of newUsers.entries()) {
+  test(`verify the post request creates a new users using random data [${index}]`, async ({
+    userService,
+  }) => {
+    console.log(newUser);
+    const response = await userService.createUser(newUser);
+    console.log("Resolved request URL (userService):", response.url());
+    expect(response.status()).toBe(200);
+    const responseBody = await response.json();
+    console.log(responseBody);
+    const compareSchema = schemaVl.validateSchema(
+      schemas.singleUserSchema,
+      responseBody
+    );
+    expect(responseBody.userName).toBe(newUser.userName);
+    expect(responseBody.id).toBe(newUser.id);
+    expect(responseBody.password).toBe(newUser.password);
+    console.log(JSON.stringify(compareSchema, null, 2));
+    expect(compareSchema.valid).toBe(true);
+  });
+}
+
 test("verify the post request creates a new user and valdiate the schema using zod", async ({
   userService,
 }) => {
@@ -110,4 +134,32 @@ test("verify the post request creates a new user and valdiate the schema using z
   );
   console.log(JSON.stringify(compareSchema, null, 2));
   expect(compareSchema.valid).toBe(true);
+});
+
+test("verify the put request creates a new user and valdiate the schema using zod", async ({
+  userService,
+}) => {
+  const response = await userService.updateUser("21", {
+    id: 21,
+    userName: "new user1",
+    password: "password1",
+  });
+  console.log("Resolved request URL (userService):", response.url());
+  expect(response.status()).toBe(200);
+  const responseBody = await response.json();
+  console.log(responseBody);
+  const compareSchema = schemaVl.assertSchema(
+    schemas.zodSingleUserSchema,
+    responseBody
+  );
+  console.log(JSON.stringify(compareSchema, null, 2));
+  expect(compareSchema.valid).toBe(true);
+});
+
+test("verify the delete user endpoint deletes that particular user", async ({
+  userService,
+}) => {
+  const response = await userService.deleteUser("21");
+  console.log("Resolved request URL (userService):", response.url());
+  expect(response.status()).toBe(200);
 });
